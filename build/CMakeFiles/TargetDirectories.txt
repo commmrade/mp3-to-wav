@@ -1,0 +1,3 @@
+/home/klewy/myFiles/Code/c++/audio-converter/build/CMakeFiles/proj.dir
+/home/klewy/myFiles/Code/c++/audio-converter/build/CMakeFiles/edit_cache.dir
+/home/klewy/myFiles/Code/c++/audio-converter/build/CMakeFiles/rebuild_cache.dir
