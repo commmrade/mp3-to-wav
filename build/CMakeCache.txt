@@ -14,15 +14,6 @@
 # EXTERNAL cache entries
 ########################
 
-//Path to a library.
-AVCODEC_LIBRARY:FILEPATH=/usr/lib/libavcodec.so
-
-//Path to a library.
-AVFORMAT_LIBRARY:FILEPATH=/usr/lib/libavformat.so
-
-//Path to a library.
-AVUTIL_LIBRARY:FILEPATH=/usr/lib/libavutil.so
-
 //Path to a program.
 CMAKE_ADDR2LINE:FILEPATH=/usr/bin/addr2line
 
@@ -243,9 +234,6 @@ PKG_CONFIG_ARGN:STRING=
 
 //pkg-config executable
 PKG_CONFIG_EXECUTABLE:FILEPATH=/usr/bin/pkg-config
-
-//Path to a library.
-SWSCALE_LIBRARY:FILEPATH=/usr/lib/libswscale.so
 
 //Path to a library.
 pkgcfg_lib_AVCODEC_avcodec:FILEPATH=/usr/lib/libavcodec.so
