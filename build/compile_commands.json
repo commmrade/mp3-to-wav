@@ -1,8 +1,0 @@
-[
-{
-  "directory": "/home/klewy/myFiles/Code/c++/audio-converter/build",
-  "command": "/usr/bin/c++   -g -std=gnu++23 -o CMakeFiles/proj.dir/main.cpp.o -c /home/klewy/myFiles/Code/c++/audio-converter/main.cpp",
-  "file": "/home/klewy/myFiles/Code/c++/audio-converter/main.cpp",
-  "output": "CMakeFiles/proj.dir/main.cpp.o"
-}
-]

@@ -1,1 +1,0 @@
-/usr/bin/c++ -g -Wl,--dependency-file=CMakeFiles/proj.dir/link.d CMakeFiles/proj.dir/main.cpp.o -o proj  -lavformat -lavcodec -lavutil -lswscale

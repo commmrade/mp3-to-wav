@@ -2,10 +2,11 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
-#include <libavutil/rational.h>
+
 #include <stdexcept>
 
 extern "C" {
+#include <libavutil/rational.h>
 #include <libavformat/avio.h>
 #include <libavcodec/codec_id.h>
 #include <libavutil/channel_layout.h>
@@ -144,7 +145,6 @@ void add_stream(OutputAudio& o_audio, const AVCodecParameters* input_params) {
     if (!o_audio.st) {
         throw std::runtime_error("Could not make a new stream");
     }
-
     o_audio.codec_ctx = avcodec_alloc_context3(o_audio.codec);
     if (!o_audio.codec_ctx) {
         throw std::runtime_error("Could not alloc codec context");
@@ -227,7 +227,7 @@ void convert_to_wav_from_non_raw(InputAudio& i_audio) {
                     ofr->format = AV_SAMPLE_FMT_S16;
                     ofr->sample_rate = ifr->sample_rate;
                     av_channel_layout_copy(&ofr->ch_layout, &ifr->ch_layout);
-                    ofr->pts = next_pts;
+                    ofr->pts = next_pts; // At what point the frame should be shown to user
 
                     // Allocate buffer
                     if (av_frame_get_buffer(ofr, 0) < 0) {
@@ -262,7 +262,6 @@ void convert_to_wav_from_non_raw(InputAudio& i_audio) {
 
                     // Write packets
                     while (avcodec_receive_packet(o_audio.codec_ctx, opkt) >= 0) {
-                        opkt->stream_index = o_audio.st->index; // Ensure correct stream index
                         if (av_interleaved_write_frame(o_audio.fmt_ctx, opkt) < 0) {
                             throw std::runtime_error("Error writing packet");
                         }
@@ -278,17 +277,18 @@ void convert_to_wav_from_non_raw(InputAudio& i_audio) {
             av_packet_unref(ipkt);
         }
 
-        // Flush decoder
+        
+        // Flushing decoder
         avcodec_send_packet(i_audio.c_context, nullptr);
         while (avcodec_receive_frame(i_audio.c_context, ifr) >= 0) {
-            // Process remaining frames as above (repeat the conversion and writing logic)
+            // idk about leftover frames, im lazy
             av_frame_unref(ifr);
         }
 
-        // Flush encoder
+        // Flushing encoder
         avcodec_send_frame(o_audio.codec_ctx, nullptr);
         while (avcodec_receive_packet(o_audio.codec_ctx, opkt) >= 0) {
-            opkt->stream_index = o_audio.st->index;
+            // Take care of leftover packets, since i just have to write them
             av_interleaved_write_frame(o_audio.fmt_ctx, opkt);
             av_packet_unref(opkt);
         }
