@@ -35,7 +35,6 @@ struct InputAudio {
 
     ~InputAudio() {
         avcodec_free_context(&c_context);
-        avformat_close_input(&fmt_ctx);
         avformat_free_context(fmt_ctx);
     }
 };
@@ -78,21 +77,23 @@ void load_audio(InputAudio& audio_info, const char* filename) {
     if (!audio_info.c_context) {
         throw std::runtime_error("Could not alloc context");
     }
-    if (avcodec_parameters_to_context(audio_info.c_context, audio_info.codec_params) < 0) {
-        throw std::runtime_error("Could not add parameters to context");
-    }
     if (avcodec_open2(audio_info.c_context, audio_info.codec, nullptr) < 0) {
         throw std::runtime_error("Could not open codec");
+    }
+    if (avcodec_parameters_to_context(audio_info.c_context, audio_info.codec_params) < 0) {
+        throw std::runtime_error("Could not add parameters to context");
     }
 }
 
 
-void decode_to_file(InputAudio& i_audio, AVPacket* packet, AVFrame* frame, const char* filename) {
+void decode_to_file(InputAudio& i_audio, const char* filename) {
     std::ofstream outfile("out.raw", std::ios_base::binary);
     if (!outfile.is_open()) {
         exit(1);
     }
 
+    AVFrame* frame = av_frame_alloc();
+    AVPacket* packet = av_packet_alloc();
     while (av_read_frame(i_audio.fmt_ctx, packet) >= 0) {
         int response = avcodec_send_packet(i_audio.c_context, packet);
         if (response < 0) {
@@ -122,21 +123,18 @@ void decode_to_file(InputAudio& i_audio, AVPacket* packet, AVFrame* frame, const
 
     outfile.flush();
     outfile.close();
-}
-
-void convert_to_raw_from_non_raw(InputAudio& i_audio)  {
-    AVFrame* frame = av_frame_alloc();
-    AVPacket* packet = av_packet_alloc();
-
-    decode_to_file(i_audio, packet, frame, "out.raw");
 
     av_packet_free(&packet);
     av_frame_free(&frame);
 }
 
+void convert_to_raw_from_non_raw(InputAudio& i_audio)  {
+    decode_to_file(i_audio, "out.raw");
+}
+
 
 void add_stream(OutputAudio& o_audio, const AVCodecParameters* input_params) {
-    o_audio.codec = avcodec_find_encoder(AV_CODEC_ID_PCM_S16LE);
+    o_audio.codec = avcodec_find_encoder(AV_CODEC_ID_PCM_S16LE); // Most common is S16
     if (!o_audio.codec) {
         throw std::runtime_error("Codec wasn't found");
     }
@@ -179,10 +177,6 @@ void convert_to_wav_from_non_raw(InputAudio& i_audio) {
     if (avformat_alloc_output_context2(&o_audio.fmt_ctx, nullptr, "wav", filename) < 0) {
         throw std::runtime_error("Could not alloc output wav context");
     }
-
-    // Set up format
-    const AVOutputFormat* fmt = nullptr;
-    fmt = o_audio.fmt_ctx->oformat;
 
     // Setup codec
     add_stream(o_audio, i_audio.codec_params);
@@ -300,13 +294,12 @@ void convert_to_wav_from_non_raw(InputAudio& i_audio) {
     }
 
     av_write_trailer(o_audio.fmt_ctx);
-
 }
 
 int main(int, char**){
 
-    // TODO разбить код на функции структуры и тд
     InputAudio audio_info{};
     load_audio(audio_info, "../song2.mp3");
+    // convert_to_raw_from_non_raw(audio_info);
     convert_to_wav_from_non_raw(audio_info);
 }
