@@ -153,9 +153,6 @@ void add_stream(OutputAudio& o_audio, const AVCodecParameters* input_params) {
     av_channel_layout_copy(&o_audio.codec_ctx->ch_layout, &input_params->ch_layout);
     o_audio.codec_ctx->sample_fmt = AV_SAMPLE_FMT_S16; // PCM_S16LE uses signed 16-bit samples
 
-    // Set time base based on sample rate
-    o_audio.st->time_base = (AVRational){1, o_audio.codec_ctx->sample_rate};
-
     // Open the codec after setting properties
     if (avcodec_open2(o_audio.codec_ctx, o_audio.codec, nullptr) < 0) {
         throw std::runtime_error("Could not open encoder");
@@ -228,12 +225,9 @@ void convert_to_wav_from_non_raw(InputAudio& i_audio, const char* out_filename) 
                         throw std::runtime_error("Failed to allocate output frame buffer");
                     }
 
-                    // Ensure frame is writable
                     if (av_frame_make_writable(ofr) < 0) {
                         throw std::runtime_error("Failed to make output frame writable");
                     }
-
-                    // Verify channel consistency
                     if (ifr->ch_layout.nb_channels != ofr->ch_layout.nb_channels) {
                         throw std::runtime_error("Channel layout mismatch");
                     }
@@ -275,7 +269,7 @@ void convert_to_wav_from_non_raw(InputAudio& i_audio, const char* out_filename) 
         // Flushing decoder
         avcodec_send_packet(i_audio.c_context, nullptr);
         while (avcodec_receive_frame(i_audio.c_context, ifr) >= 0) {
-            // idk about leftover frames, im lazy
+            // idc about leftover frames, im lazy
             av_frame_unref(ifr);
         }
 
