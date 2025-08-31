@@ -167,8 +167,8 @@ void add_stream(OutputAudio& o_audio, const AVCodecParameters* input_params) {
     }
 }
 
-void convert_to_wav_from_non_raw(InputAudio& i_audio) {
-    const char* filename = "out.wav";
+void convert_to_wav_from_non_raw(InputAudio& i_audio, const char* out_filename) {
+    const char* filename = out_filename;
 
     OutputAudio o_audio{};
 
@@ -271,7 +271,7 @@ void convert_to_wav_from_non_raw(InputAudio& i_audio) {
             av_packet_unref(ipkt);
         }
 
-        
+
         // Flushing decoder
         avcodec_send_packet(i_audio.c_context, nullptr);
         while (avcodec_receive_frame(i_audio.c_context, ifr) >= 0) {
@@ -296,10 +296,10 @@ void convert_to_wav_from_non_raw(InputAudio& i_audio) {
     av_write_trailer(o_audio.fmt_ctx);
 }
 
-int main(int, char**){
+int main(int argc, char** argv) {
+    if (argc < 3) throw std::runtime_error("Use it like ./executable in.file out.file");
 
     InputAudio audio_info{};
-    load_audio(audio_info, "../song2.mp3");
-    // convert_to_raw_from_non_raw(audio_info);
-    convert_to_wav_from_non_raw(audio_info);
+    load_audio(audio_info, argv[1]);
+    convert_to_wav_from_non_raw(audio_info, argv[2]);
 }
